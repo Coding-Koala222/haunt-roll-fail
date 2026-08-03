@@ -1,0 +1,70 @@
+name: Build and Export Output
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: sbt
+
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
+
+      - name: Build scala-js-dom-reduced
+        working-directory: scala-js-dom-reduced
+        run: sbt "publishLocal"
+
+      - name: Build haunt-roll-fail
+        working-directory: haunt-roll-fail
+        run: sbt "fastOptJS"
+
+      - name: good-game create
+        working-directory: good-game
+        run: sbt "run create ../good-game-database ../haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
+
+      - name: good-game run
+        working-directory: good-game
+        run: sbt "run run ../good-game-database ../haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
+
+      # Upload DB/output directory created/used by good-game
+      - name: Upload good-game database/output
+        uses: actions/upload-artifact@v4
+        with:
+          name: good-game-database
+          path: good-game-database
+          if-no-files-found: warn
+
+      # Upload scala.js output from haunt-roll-fail
+      - name: Upload haunt-roll-fail fastOptJS output
+        uses: actions/upload-artifact@v4
+        with:
+          name: haunt-roll-fail-fastOptJS
+          path: |
+            haunt-roll-fail/target/**/*
+            haunt-roll-fail/**/target/**/*
+          if-no-files-found: warn
+
+      # Optional: upload any packaged/static outputs good-game may generate
+      - name: Upload good-game build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: good-game-output
+          path: |
+            good-game/target/**/*
+            good-game/**/target/**/*
+          if-no-files-found: warn
