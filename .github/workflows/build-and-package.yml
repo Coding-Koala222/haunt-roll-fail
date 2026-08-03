@@ -31,21 +31,18 @@ jobs:
         working-directory: scala-js-dom-reduced
         run: sbt "publishLocal"
 
-      - name: Build haunt-roll-fail
+      - name: Build haunt-roll-fail (Scala.js)
         working-directory: haunt-roll-fail
         run: sbt "fastOptJS"
 
-      - name: good-game create
+      - name: good-game create static output
         working-directory: good-game
         run: sbt "run create ../good-game-database ../haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
 
-      - name: good-game run
-        working-directory: good-game
-        run: sbt "run run ../good-game-database ../haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
-
-      - name: Upload good-game database/output
+      # Main artifact you want to download and host/run locally
+      - name: Upload generated site/output
         uses: actions/upload-artifact@v4
         with:
           name: good-game-database
           path: good-game-database
-          if-no-files-found: warn
+          if-no-files-found: error
