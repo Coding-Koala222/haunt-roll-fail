@@ -35,14 +35,21 @@ jobs:
         working-directory: haunt-roll-fail
         run: sbt "fastOptJS"
 
-      - name: good-game create static output
+      - name: Generate static output (create only)
         working-directory: good-game
-        run: sbt "run create ../good-game-database ../haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
+        run: |
+          OUT_DIR="$GITHUB_WORKSPACE/good-game-database"
+          mkdir -p "$OUT_DIR"
+          sbt "run create $OUT_DIR $GITHUB_WORKSPACE/haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
 
-      # Main artifact you want to download and host/run locally
-      - name: Upload generated site/output
+      - name: Inspect output (debug)
+        run: |
+          ls -la "$GITHUB_WORKSPACE"
+          ls -la "$GITHUB_WORKSPACE/good-game-database" || true
+
+      - name: Upload generated output
         uses: actions/upload-artifact@v4
         with:
           name: good-game-database
-          path: good-game-database
+          path: ${{ github.workspace }}/good-game-database
           if-no-files-found: error
