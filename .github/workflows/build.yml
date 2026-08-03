@@ -26,11 +26,11 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Build fat JAR with sbt-assembly
-        run: sbt clean assembly
+        run: sbt ";clean;assembly"
 
       - name: Upload runnable JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-assembly-jar
-          path: target/scala-*/**/*assembly*.jar
+          name: haunt-roll-fail-jar
+          path: target/scala-*/haunt-roll-fail.jar
           if-no-files-found: error
