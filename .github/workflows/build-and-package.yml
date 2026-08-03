@@ -38,18 +38,31 @@ jobs:
       - name: Generate static output (create only)
         working-directory: good-game
         run: |
-          OUT_DIR="$GITHUB_WORKSPACE/good-game-database"
-          mkdir -p "$OUT_DIR"
-          sbt "run create $OUT_DIR $GITHUB_WORKSPACE/haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
+          OUT_BASE="$GITHUB_WORKSPACE/good-game-database"
+          mkdir -p "$OUT_BASE"
+          sbt "run create $OUT_BASE $GITHUB_WORKSPACE/haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
 
-      - name: Inspect output (debug)
+      - name: Collect output files for artifact
         run: |
-          ls -la "$GITHUB_WORKSPACE"
-          ls -la "$GITHUB_WORKSPACE/good-game-database" || true
+          ARTIFACT_DIR="$GITHUB_WORKSPACE/good-game-database-artifact"
+          mkdir -p "$ARTIFACT_DIR"
+
+          # HSQLDB files created by `run create`
+          cp "$GITHUB_WORKSPACE/good-game-database.script" "$ARTIFACT_DIR/" || true
+          cp "$GITHUB_WORKSPACE/good-game-database.properties" "$ARTIFACT_DIR/" || true
+          cp "$GITHUB_WORKSPACE/good-game-database.log" "$ARTIFACT_DIR/" || true
+
+          # Optional temp folder (if present)
+          if [ -d "$GITHUB_WORKSPACE/good-game-database.tmp" ]; then
+            cp -R "$GITHUB_WORKSPACE/good-game-database.tmp" "$ARTIFACT_DIR/"
+          fi
+
+          echo "Collected artifact contents:"
+          ls -la "$ARTIFACT_DIR"
 
       - name: Upload generated output
         uses: actions/upload-artifact@v4
         with:
           name: good-game-database
-          path: ${{ github.workspace }}/good-game-database
+          path: ${{ github.workspace }}/good-game-database-artifact/**
           if-no-files-found: error
