@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SBT_OPTS: "-Xms1G -Xmx6G -Xss4M -XX:MaxMetaspaceSize=1G -XX:+UseG1GC"
 
     steps:
       - name: Checkout repository
@@ -41,30 +43,9 @@ jobs:
         working-directory: good-game
         run: sbt "run run ../good-game-database ../haunt-roll-fail http://localhost:7070 http://localhost:7070/hrf/ 7070"
 
-      # Upload DB/output directory created/used by good-game
       - name: Upload good-game database/output
         uses: actions/upload-artifact@v4
         with:
           name: good-game-database
           path: good-game-database
-          if-no-files-found: warn
-
-      # Upload scala.js output from haunt-roll-fail
-      - name: Upload haunt-roll-fail fastOptJS output
-        uses: actions/upload-artifact@v4
-        with:
-          name: haunt-roll-fail-fastOptJS
-          path: |
-            haunt-roll-fail/target/**/*
-            haunt-roll-fail/**/target/**/*
-          if-no-files-found: warn
-
-      # Optional: upload any packaged/static outputs good-game may generate
-      - name: Upload good-game build output
-        uses: actions/upload-artifact@v4
-        with:
-          name: good-game-output
-          path: |
-            good-game/target/**/*
-            good-game/**/target/**/*
           if-no-files-found: warn
